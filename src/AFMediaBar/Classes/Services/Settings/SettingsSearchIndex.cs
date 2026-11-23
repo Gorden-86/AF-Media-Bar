@@ -177,7 +177,7 @@ public static class SettingsSearchIndex
             "Settings.RestState.Visible",
             "Search.DisplayModes.RestLayer.Description",
             language,
-            ["静置", "静置层", "靜置層", "常驻", "常驻状态", "常駐狀態", "rest", "rest layer", "always-on view", "进度", "播放进度", "progress", "设备按钮", "输出设备", "音量按钮", "显示频谱", "显示性能", "显示电量", "小封面", "封面边缘进度", "small artwork"], "Common.RestLayer"),
+            ["静置", "静置层", "靜置層", "常驻", "常驻状态", "常駐狀態", "rest", "rest layer", "always-on view", "进度", "播放进度", "progress", "设备按钮", "输出设备", "音量按钮", "显示频谱", "显示性能", "显示电量", "小封面", "封面边缘进度", "边缘进度", "邊緣進度", "歌词底部播放进度", "歌詞底部播放進度", "small artwork", "edge progress", "progress below lyrics", "进度样式", "注水", "线条", "progress style", "fill", "outline"], "Common.RestLayer"),
         Create(SettingsPageKey.RestState, "Settings.RestState.Idle", "Settings.RestState.IdleDescription", language,
             ["没有媒体", "无媒体", "空闲", "idle", "隐藏", "保留组件", "小音符", "without media"]),
         Create(SettingsPageKey.RestState, "Common.Group.ComponentOrder", "Common.ComponentOrder.Description", language,
@@ -267,7 +267,7 @@ public static class SettingsSearchIndex
             "Common.Group.LyricsSources",
             "Search.Lyrics.Sources.Description",
             language,
-            ["来源", "歌词来源", "source", "sources", "网易云", "网易云音乐", "netease", "qq 音乐", "qqmusic", "酷狗", "kugou", "汽水", "soda", "lrclib", "搜索", "search", "匹配", "match", "艺术家分隔符", "artist separators", "默认规则", "手动规则", "权重", "优先级", "顺序优先", "先到先得", "逐个尝试", "并发尝试", "manual", "priority", "parallel", "sequential", "first available", "手動", "並行", "優先", "thủ công", "song song", "lần lượt",
+            ["歌词代理", "跟随系统", "直连", "连通性", "lyrics proxy", "follow system", "connectivity", "来源", "歌词来源", "source", "sources", "网易云", "网易云音乐", "netease", "qq 音乐", "qqmusic", "酷狗", "kugou", "汽水", "soda", "lrclib", "搜索", "search", "匹配", "match", "艺术家分隔符", "artist separators", "默认规则", "手动规则", "权重", "优先级", "顺序优先", "先到先得", "逐个尝试", "并发尝试", "manual", "priority", "parallel", "sequential", "first available", "手動", "並行", "優先", "thủ công", "song song", "lần lượt",
                 "apple music", "itunes", "原名", "译名", "譯名", "original title", "tên gốc"]),
 
         // ---- 外观 / Appearance ----
