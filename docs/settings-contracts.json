@@ -124,6 +124,7 @@
       "attemptMode": "v1.5.0",
       "resultMode": "v1.5.0",
       "prioritySourceIds": "v1.5.0",
+      "sourceProxyModes": "unreleased",
       "localEnabled": "v1.7.0",
       "localFallbackOnly": "v1.7.0",
       "localFolders": "v1.7.0",
@@ -198,6 +199,7 @@
     "taskbarExperience": {
       "$release": "v1.2.0",
       "arrangement": "v1.4.0",
+      "artworkProgressStyle": "unreleased",
       "artworkProgressVisible": "v1.4.0",
       "artworkVisible": "v1.3.0",
       "componentSpacingDip": "v1.2.0",
@@ -505,6 +507,13 @@
         }
       }
     },
+    "LyricsSourceProxyMode": {
+      "paths": ["settings.lyricsSource.sourceProxyModes"],
+      "members": {
+        "FollowSystem": { "value": 0, "release": "unreleased" },
+        "Direct": { "value": 1, "release": "unreleased" }
+      }
+    },
     "LyricsSourceResultMode": {
       "paths": [
         "settings.lyricsSource.resultMode"
@@ -601,6 +610,21 @@
         "None": {
           "value": 3,
           "release": "v1.7.0"
+        }
+      }
+    },
+    "ArtworkProgressStyle": {
+      "paths": [
+        "settings.taskbarExperience.artworkProgressStyle"
+      ],
+      "members": {
+        "Line": {
+          "value": 0,
+          "release": "unreleased"
+        },
+        "Fill": {
+          "value": 1,
+          "release": "unreleased"
         }
       }
     },
