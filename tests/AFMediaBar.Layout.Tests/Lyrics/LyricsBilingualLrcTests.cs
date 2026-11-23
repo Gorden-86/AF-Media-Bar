@@ -18,7 +18,7 @@ public sealed class LyricsBilingualLrcTests
             [00:11.05]僕らもう一度その先へ
             [00:11.05]我们再一次走向故事的延续
             """;
-        var document = LyricsTextParser.Parse(payload);
+        var document = LyricsTextParser.ParseLocal(payload);
         Assert.AreEqual(2, document.Lines.Count);
         Assert.AreEqual("どこかで途切れた物語", document.Lines[0].Text);
         Assert.AreEqual("故事不知在哪里中断", document.Lines[0].Translation);
@@ -39,7 +39,7 @@ public sealed class LyricsBilingualLrcTests
             [00:11.05]我们再一次走向故事的延续
             [00:11.05]bokura mou ichido sono saki e
             """;
-        var document = LyricsTextParser.Parse(payload);
+        var document = LyricsTextParser.ParseLocal(payload);
         Assert.AreEqual(2, document.Lines.Count);
         Assert.AreEqual("どこかで途切れた物語", document.Lines[0].Text);
         Assert.AreEqual("故事不知在哪里中断", document.Lines[0].Translation);
@@ -58,7 +58,7 @@ public sealed class LyricsBilingualLrcTests
             [00:11.05]bokura mou ichido sono saki e
             [00:11.05]我们再一次走向故事的延续
             """;
-        var document = LyricsTextParser.Parse(payload);
+        var document = LyricsTextParser.ParseLocal(payload);
         Assert.AreEqual(2, document.Lines.Count);
         Assert.AreEqual("故事不知在哪里中断", document.Lines[0].Translation);
         Assert.AreEqual("dokoka de togireta monogatari", document.Lines[0].Romanization);
@@ -68,7 +68,7 @@ public sealed class LyricsBilingualLrcTests
     public void OrdinaryLinesKeepNoTranslation()
     {
         const string payload = "[00:01.00]First\n[00:03.00]Second\n[00:05.00]Third";
-        var document = LyricsTextParser.Parse(payload);
+        var document = LyricsTextParser.ParseLocal(payload);
         Assert.AreEqual(3, document.Lines.Count);
         Assert.IsTrue(document.Lines.All(line => line.Translation is null && line.Romanization is null));
     }
@@ -82,15 +82,77 @@ public sealed class LyricsBilingualLrcTests
             [00:03.00]B
             [00:05.00]C
             [00:07.00]D
-            [00:07.00]D2
+            [00:07.00]丁
             [00:09.00]E
             [00:11.00]F
             [00:13.00]G
             [00:15.00]H
             [00:17.00]I
             """;
-        var document = LyricsTextParser.Parse(payload);
+        var document = LyricsTextParser.ParseLocal(payload);
         Assert.AreEqual(10, document.Lines.Count);
+        Assert.IsTrue(document.Lines.All(line => line.Translation is null));
+    }
+
+    [TestMethod]
+    public void OverlappingLinesInTheSameScriptStaySeparate()
+    {
+        const string payload = """
+            [00:01.00]Lead first
+            [00:01.00]Harmony first
+            [00:03.00]Lead second
+            [00:03.00]Harmony second
+            """;
+        var document = LyricsTextParser.ParseLocal(payload);
+
+        Assert.AreEqual(4, document.Lines.Count);
+        Assert.IsTrue(document.Lines.All(line => line.Translation is null));
+    }
+
+    [TestMethod]
+    public void SharedParserKeepsOverlappingLinesEvenAcrossScripts()
+    {
+        const string payload = "[00:01.00]First\n[00:01.00]第一句\n[00:03.00]Second\n[00:03.00]第二句";
+        var document = LyricsTextParser.Parse(payload);
+
+        Assert.AreEqual(4, document.Lines.Count);
+        Assert.IsTrue(document.Lines.All(line => line.Translation is null));
+    }
+
+    [TestMethod]
+    public void MissingEmbeddedTranslationDoesNotPickUpThePreviousLine()
+    {
+        const string payload = """
+            [00:01.000]First line
+            [00:01.000]第一句
+            [00:01.300]Second line
+            [00:03.000]Third line
+            [00:03.000]第三句
+            """;
+        var document = LyricsTextParser.ParseLocal(payload);
+
+        Assert.AreEqual("第一句", document.Lines[0].Translation);
+        Assert.IsNull(document.Lines[1].Translation);
+        Assert.AreEqual("第三句", document.Lines[2].Translation);
+    }
+
+    [TestMethod]
+    public void SrtCuesSevenMillisecondsApartStaySeparate()
+    {
+        const string srt = """
+            1
+            00:00:07,091 --> 00:00:11,050
+            First line
+
+            2
+            00:00:07,098 --> 00:00:11,050
+            第二句
+            """;
+        var document = LyricsTextParser.ParseLocal(SubtitleTextConverter.TryConvert(srt));
+
+        Assert.AreEqual(2, document.Lines.Count);
+        Assert.AreEqual(7.091, document.Lines[0].Start, 0.0001);
+        Assert.AreEqual(7.098, document.Lines[1].Start, 0.0001);
         Assert.IsTrue(document.Lines.All(line => line.Translation is null));
     }
 
@@ -105,7 +167,7 @@ public sealed class LyricsBilingualLrcTests
             [00:01.00]再来一行
             [00:03.00]次句
             """;
-        var document = LyricsTextParser.Parse(payload);
+        var document = LyricsTextParser.ParseLocal(payload);
         Assert.AreEqual(5, document.Lines.Count);
         Assert.IsTrue(document.Lines.All(line => line.Translation is null));
     }
@@ -115,7 +177,7 @@ public sealed class LyricsBilingualLrcTests
     {
         const string payload = "[00:01.00]Hello\n[00:03.00]World";
         const string translation = "[00:01.00]你好\n[00:03.00]世界";
-        var document = LyricsTextParser.Parse(payload, translation);
+        var document = LyricsTextParser.ParseLocal(payload, translation);
         Assert.AreEqual("你好", document.Lines[0].Translation);
         Assert.AreEqual("世界", document.Lines[1].Translation);
     }
@@ -124,22 +186,22 @@ public sealed class LyricsBilingualLrcTests
     public void SeparateTranslationFileWinsOverEmbedded()
     {
         // 同目录的 .tlyric 是显式指定的译文来源，比文件内嵌的那份优先。
-        const string payload = "[00:07.09]原文\n[00:07.09]内嵌译文";
+        const string payload = "[00:07.09]Hello\n[00:07.09]内嵌译文";
         const string translation = "[00:07.09]外部译文";
-        var document = LyricsTextParser.Parse(payload, translation);
-        Assert.AreEqual("原文", document.Lines[0].Text);
+        var document = LyricsTextParser.ParseLocal(payload, translation);
+        Assert.AreEqual("Hello", document.Lines[0].Text);
         Assert.AreEqual("外部译文", document.Lines[0].Translation);
     }
 
     [TestMethod]
-    public void WindowsLineEndingsStillSplit()
+    public void EquivalentTimestampsWithWindowsLineEndingsStillSplit()
     {
-        var payload = "[00:01.00]原文一\r\n[00:01.00]译文一\r\n[00:03.00]原文二\r\n[00:03.00]译文二";
-        var document = LyricsTextParser.Parse(payload);
+        var payload = "[00:01.10]Hello\r\n[00:01.100]译文一\r\n[00:03.2]World\r\n[00:03.200]译文二";
+        var document = LyricsTextParser.ParseLocal(payload);
         Assert.AreEqual(2, document.Lines.Count);
-        Assert.AreEqual("原文一", document.Lines[0].Text);
+        Assert.AreEqual("Hello", document.Lines[0].Text);
         Assert.AreEqual("译文一", document.Lines[0].Translation);
-        Assert.AreEqual("原文二", document.Lines[1].Text);
+        Assert.AreEqual("World", document.Lines[1].Text);
         Assert.AreEqual("译文二", document.Lines[1].Translation);
     }
 
@@ -160,7 +222,7 @@ public sealed class LyricsBilingualLrcTests
             Dialogue: 0,0:00:11.05,0:00:15.00,Default,,0,0,0,,我们再一次走向故事的延续
             """;
         var lrc = SubtitleTextConverter.TryConvert(ass);
-        var document = LyricsTextParser.Parse(lrc);
+        var document = LyricsTextParser.ParseLocal(lrc);
         Assert.AreEqual(2, document.Lines.Count);
         Assert.AreEqual("どこかで途切れた物語", document.Lines[0].Text);
         Assert.AreEqual("故事不知在哪里中断", document.Lines[0].Translation);
@@ -189,7 +251,7 @@ public sealed class LyricsBilingualLrcTests
             我们再一次走向故事的延续
             """;
         var lrc = SubtitleTextConverter.TryConvert(srt);
-        var document = LyricsTextParser.Parse(lrc);
+        var document = LyricsTextParser.ParseLocal(lrc);
         Assert.AreEqual(2, document.Lines.Count);
         Assert.AreEqual("どこかで途切れた物語", document.Lines[0].Text);
         Assert.AreEqual("故事不知在哪里中断", document.Lines[0].Translation);

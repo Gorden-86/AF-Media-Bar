@@ -244,7 +244,7 @@ public sealed partial class LocalFileLyricsProvider : ILyricsProvider
             metadataConflict, fileConflict);
 
         var (translation, romanization) = ReadCompanions(path, baseName);
-        var document = LyricsTextParser.Parse(text, translation, romanization, request,
+        var document = LyricsTextParser.ParseLocal(text, translation, romanization, request,
             request.DurationSeconds ?? duration, request.FilterInfoLines);
         return new Candidate(path, assessment.Score, confidence, document);
     }

@@ -53,7 +53,7 @@ public static class SubtitleTextConverter
     {
         var lines = new List<string>();
         var cue = new List<string>();
-        double? start = null;
+        long? start = null;
 
         void Flush()
         {
@@ -152,32 +152,28 @@ public static class SubtitleTextConverter
 
     /// <summary>`H:MM:SS,mmm` 与 `H:MM:SS.cc` 共用一套解析：小数位按位数折算。
     /// One parser for `H:MM:SS,mmm` and `H:MM:SS.cc`: the fraction is scaled by its digit count.</summary>
-    private static bool TryParseClock(string value, out double seconds)
+    private static bool TryParseClock(string value, out long milliseconds)
     {
-        seconds = 0;
+        milliseconds = 0;
         var match = Clock.Match(value);
         if (!match.Success) return false;
 
         var fraction = match.Groups["f"].Value;
-        var milliseconds = fraction.Length == 0 ? 0 : int.Parse(fraction) * (fraction.Length switch
+        var fractionalMilliseconds = fraction.Length == 0 ? 0 : int.Parse(fraction) * (fraction.Length switch
         {
             1 => 100,
             2 => 10,
             _ => 1
         });
 
-        seconds = int.Parse(match.Groups["h"].Value) * 3600d
-                + int.Parse(match.Groups["m"].Value) * 60d
-                + int.Parse(match.Groups["s"].Value)
-                + milliseconds / 1000d;
+        milliseconds = int.Parse(match.Groups["h"].Value) * 3_600_000L
+                     + int.Parse(match.Groups["m"].Value) * 60_000L
+                     + int.Parse(match.Groups["s"].Value) * 1_000L
+                     + fractionalMilliseconds;
         return true;
     }
 
-    /// <summary>LRC 时间戳是「分:秒.百分秒」，分钟不进位到小时，长字幕也能落在同一行内。
-    /// LRC stamps read `minutes:seconds.hundredths`; minutes never carry into hours so long files stay on one line.</summary>
-    private static string FormatLrcLine(double seconds, string content)
-    {
-        var total = TimeSpan.FromSeconds(seconds);
-        return $"[{(int)total.TotalMinutes:00}:{total.Seconds:00}.{total.Milliseconds / 10:00}]{content}";
-    }
+    /// <summary>字幕时间轴保留毫秒精度，分钟不进位到小时。</summary>
+    private static string FormatLrcLine(long milliseconds, string content) =>
+        $"[{milliseconds / 60_000:00}:{milliseconds / 1_000 % 60:00}.{milliseconds % 1_000:000}]{content}";
 }

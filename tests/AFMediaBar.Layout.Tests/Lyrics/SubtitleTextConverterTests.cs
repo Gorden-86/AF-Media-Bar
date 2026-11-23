@@ -12,7 +12,7 @@ public sealed class SubtitleTextConverterTests
     {
         const string srt = """
             1
-            00:00:01,500 --> 00:00:04,000
+            00:00:01,501 --> 00:00:04,000
             <i>Hello</i>
 
             2
@@ -24,7 +24,7 @@ public sealed class SubtitleTextConverterTests
         var lrc = SubtitleTextConverter.TryConvert(srt);
 
         // 序号行不进正文，同一条字幕的多行合并成一行，HTML 标记去掉。
-        Assert.AreEqual("[00:01.50]Hello\n[00:05.25]first line second line", lrc);
+        Assert.AreEqual("[00:01.501]Hello\n[00:05.250]first line second line", lrc);
     }
 
     [TestMethod]
@@ -44,7 +44,7 @@ public sealed class SubtitleTextConverterTests
         var lrc = SubtitleTextConverter.TryConvert(ass);
 
         // 样式块与软换行被清掉；Text 是最后一个字段，里面的逗号属于文本而不是分隔符。
-        Assert.AreEqual("[00:01.50]Hello world\n[01:02.34]second, with comma", lrc);
+        Assert.AreEqual("[00:01.500]Hello world\n[01:02.340]second, with comma", lrc);
     }
 
     [TestMethod]
