@@ -81,6 +81,7 @@ public sealed class KugouLyricsProvider : ILyricsProvider
 
         var document = LyricsTextParser.Parse(
             krc,
+            romanizationText: KugouKrcRomanization.Extract(krc),
             request: request,
             durationSeconds: request.DurationSeconds,
             filterInfoLines: request.FilterInfoLines);
