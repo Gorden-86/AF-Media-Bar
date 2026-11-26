@@ -20,8 +20,8 @@ public sealed class KugouKrcRomanizationTests
         Assert.IsNotNull(result);
         var lines = result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         Assert.AreEqual(2, lines.Length);
-        Assert.AreEqual("[00:01.00]a na ta", lines[0]);
-        Assert.AreEqual("[00:02.50]ta ni", lines[1]);
+        Assert.AreEqual("[00:01.000]a na ta", lines[0]);
+        Assert.AreEqual("[00:02.500]ta ni", lines[1]);
     }
 
     [TestMethod]
@@ -59,8 +59,35 @@ public sealed class KugouKrcRomanizationTests
         Assert.IsNotNull(result);
         var lines = result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         Assert.AreEqual(2, lines.Length);
-        Assert.AreEqual("[00:01.00]a", lines[0]);
-        Assert.AreEqual("[00:03.00]c", lines[1]);
+        Assert.AreEqual("[00:01.000]a", lines[0]);
+        Assert.AreEqual("[00:03.000]c", lines[1]);
+    }
+
+    [TestMethod]
+    public void PreservesOffsetAndLongDurationWhenAttachedByParser()
+    {
+        var krc = "[offset:1500]\n" + BuildKrc("""[["a "],["b "]]""", [1000, 3_665_250]);
+
+        var romanization = KugouKrcRomanization.Extract(krc);
+
+        Assert.IsNotNull(romanization);
+        StringAssert.Contains(romanization, "[offset:1500]");
+        StringAssert.Contains(romanization, "[61:05.250]b");
+
+        var document = LyricsTextParser.Parse(krc, romanizationText: romanization, filterInfoLines: false);
+        Assert.AreEqual(2, document.Lines.Count);
+        Assert.AreEqual("a", document.Lines[0].Romanization);
+        Assert.AreEqual("b", document.Lines[1].Romanization);
+    }
+
+    [TestMethod]
+    public void ReturnsNullForOverflowTimestamp()
+    {
+        var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(
+            """{"content":[{"lyricContent":[["a "]],"type":0,"language":0}],"version":1}"""));
+        var krc = $"[ti:测试]\n[language:{base64}]\n[99999999999999999999999,500]<0,100,0>词\n";
+
+        Assert.IsNull(KugouKrcRomanization.Extract(krc));
     }
 
     [TestMethod]
